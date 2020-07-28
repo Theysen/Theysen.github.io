@@ -127,6 +127,11 @@
                 return {month: careerLogs.entries[i]["Month"], index: i};
             }
         }
+
+        return {
+            month: "Not yet reached first orbit",
+            index: 0
+        }
     }
 
     function drawChart(careerLogs) {
