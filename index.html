@@ -1,194 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>RP-1 Analytics</title>
-    <script src="main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <!-- Compiled and minified CSS -->
     <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
     />
 
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-  </head>
-  <body>
-    <nav>
-      <div class="nav-wrapper blue darken-4">
+</head>
+<body>
+<nav>
+    <div class="nav-wrapper blue darken-4">
         <a href="#" class="brand-logo" style="margin: 0 1rem;"
-          >KSPRO - RP1 - Analytics</a
+        >KSPRO - RP1 - Analytics</a
         >
-      </div>
-    </nav>
-
-    <div style="margin: 1rem 1rem;">
-      <label for="uuid_input">UUID</label>
-      <input
-        name="uuid_input"
-        placeholder="Enter UUID as shown on web export"
-        type="text"
-      />
-      <button class="waves-effect waves-light btn" onclick="getCareerLogs()">
-        Get Career Log
-      </button>
-
-      <div id="chart"></div>
     </div>
+</nav>
 
-    <script>
-      function getCareerLogs() {
+<div style="margin: 1rem 1rem;">
+    <label for="uuid_input">UUID</label>
+    <input
+            name="uuid_input"
+            id="uuid_input"
+            placeholder="Enter UUID as displayed on the web export dialog"
+            type="text"
+    />
+    <button class="waves-effect waves-light btn" onclick="getCareerLogs()">
+        Get Career Log
+    </button>
+
+    <div id="chart"></div>
+</div>
+
+<script>
+    function getCareerLogs() {
         console.log("Getting Logs...");
 
-        fetch(
-          "https://kspro-rp1-analytics.herokuapp.com/api/careerlogs/8a2616a8d3f710cfb868a5d18877d8df41bc3fc7"
-        )
-          .then((res) => res.json())
-          .then((jsonLogs) => drawChart(jsonLogs));
-      }
+        fetch("https://kspro-rp1-analytics.herokuapp.com/api/careerlogs/8a2616a8d3f710cfb868a5d18877d8df41bc3fc7")
+            .then((res) => res.json())
+            .then((jsonLogs) => drawChart(jsonLogs));
+    }
 
-      function getEpochs(careerLogs) {
+    function getEpochs(careerLogs) {
         console.log("Fetching epochs from entries");
         console.log(careerLogs.entries);
 
         let epochs = [];
 
         careerLogs.entries.forEach((entry) => {
-          epochs.push(entry.epoch);
+            epochs.push(entry.epoch);
         });
 
         return epochs;
-      }
+    }
 
-      function getScienceEarned(careerLogs) {
+    function getScienceEarned(careerLogs) {
         console.log("Fetching science earned from entries");
-
         let scienceEarned = [];
-
         careerLogs.entries.forEach((entry) => {
-          scienceEarned.push(entry.scienceEarned);
+            scienceEarned.push(entry.scienceEarned);
         });
 
         return scienceEarned;
-      }
+    }
 
-      function getCurrentFunds(careerLogs) {
+    function getCurrentFunds(careerLogs) {
         console.log("Fetching current funds from entries");
 
         let currentFunds = [];
 
         careerLogs.entries.forEach((entry) => {
-          currentFunds.push(entry.currentFunds);
+            currentFunds.push(entry.currentFunds);
         });
 
         return currentFunds;
-      }
+    }
 
-      function getVabUpgrades(careerLogs) {
+    function getVabUpgrades(careerLogs) {
         console.log("Fetching vab upgrades from entries");
 
         let vabUpgrades = [];
 
         careerLogs.entries.forEach((entry) => {
-          vabUpgrades.push(entry.vabUpgrades);
+            vabUpgrades.push(entry.vabUpgrades);
         });
 
         return vabUpgrades;
-      }
+    }
 
-      function getSphUpgrades(careerLogs) {
+    function getSphUpgrades(careerLogs) {
         console.log("Fetching vab upgrades from entries");
 
         let sphUpgrades = [];
 
         careerLogs.entries.forEach((entry) => {
-          sphUpgrades.push(entry.sphUpgrades);
+            sphUpgrades.push(entry.sphUpgrades);
         });
 
         return sphUpgrades;
-      }
+    }
 
-      function getRndUpgrades(careerLogs) {
+    function getRndUpgrades(careerLogs) {
         console.log("Fetching vab upgrades from entries");
 
         let rndUpgrades = [];
 
         careerLogs.entries.forEach((entry) => {
-          rndUpgrades.push(entry.rndUpgrades);
+            rndUpgrades.push(entry.rndUpgrades);
         });
 
         return rndUpgrades;
-      }
+    }
 
-      function drawChart(careerLogs) {
+    function getFirstSatelliteMonth(careerLogs) {
+
+        console.log("Fetching first Artificial Satellite month");
+
+        for (let i = 0; i < careerLogs.entries.size; i++) {
+            if (careerLogs.entries[i]["Contracts"].includes('First Artificial Satellite')) {
+                return {month: careerLogs.entries[i]["Month"], index: i};
+            }
+        }
+    }
+
+    function drawChart(careerLogs) {
         console.log("Drawing Chart");
 
         const options = {
-          chart: {
-            type: "line",
-            height: 700,
-            width: 1800,
-          },
-          markers: {
-            size: 1,
-            colors: undefined,
-            strokeColors: "#fff",
-            strokeWidth: 1,
-            strokeOpacity: 0.2,
-            strokeDashArray: 0,
-            fillOpacity: 1,
-            shape: "circle",
-            radius: 1,
-            offsetX: 0,
-            offsetY: 0,
-          },
-          stroke: {
-            show: true,
-            curve: "straight",
-            lineCap: "butt",
-            colors: undefined,
-            width: 3,
-            dashArray: 0,
-          },
-          grid: {
-            row: {
-              colors: ["#f3f3f3", "transparent"],
-              opacity: 0.5,
+            chart: {
+                type: "line",
+                height: 700,
+                width: 1800,
             },
-          },
-          series: [
-            {
-              name: "Science Earned",
-              data: getScienceEarned(careerLogs),
+            markers: {
+                size: 1,
+                colors: undefined,
+                strokeColors: "#fff",
+                strokeWidth: 1,
+                strokeOpacity: 0.2,
+                strokeDashArray: 0,
+                fillOpacity: 1,
+                shape: "circle",
+                radius: 1,
+                offsetX: 0,
+                offsetY: 0,
+                discrete: [
+                    {
+                        seriesIndex: 0,
+                        dataPointIndex: this.getFirstSatelliteMonth(careerLogs).index,
+                        strokeColors: '#red',
+                        strokeWidth: 1,
+                        strokeOpacity: 0.2,
+                        strokeDashArray: 0,
+                        fillOpacity: 1,
+                        size: 5,
+                    },
+                ],
             },
-            {
-              name: "VAB Upgrades",
-              data: getVabUpgrades(careerLogs),
+            stroke: {
+                show: true,
+                curve: "straight",
+                lineCap: "butt",
+                colors: undefined,
+                width: 3,
+                dashArray: 0,
             },
-            {
-              name: "SPH Upgrades",
-              data: getSphUpgrades(careerLogs),
+            grid: {
+                row: {
+                    colors: ["#f3f3f3", "transparent"],
+                    opacity: 0.5,
+                },
             },
-            {
-              name: "RnD Upgrades",
-              data: getRndUpgrades(careerLogs),
+            series: [
+                {
+                    name: "Science Earned",
+                    data: getScienceEarned(careerLogs),
+                },
+                {
+                    name: "VAB Upgrades",
+                    data: getVabUpgrades(careerLogs),
+                },
+                {
+                    name: "SPH Upgrades",
+                    data: getSphUpgrades(careerLogs),
+                },
+                {
+                    name: "RnD Upgrades",
+                    data: getRndUpgrades(careerLogs),
+                },
+                {
+                    name: "Current Funds",
+                    data: getCurrentFunds(careerLogs),
+                },
+            ],
+            xaxis: {
+                categories: getEpochs(careerLogs),
             },
-            {
-              name: "Current Funds",
-              data: getCurrentFunds(careerLogs),
-            },
-          ],
-          xaxis: {
-            categories: getEpochs(careerLogs),
-          },
+            yaxis: [
+                {
+                    title: {
+                        text: 'Funds $',
+                    },
+                    axisTicks: {
+                        show: true,
+                    },
+                    axisBorder: {
+                        show: true,
+                    },
+                },
+                {
+                    seriesName: 'Total Funds',
+                    show: false,
+                },
+                {
+                    opposite: true,
+                    axisTicks: {
+                        show: true,
+                    },
+                    axisBorder: {
+                        show: true,
+                    },
+                    title: {
+                        text: 'Upgrade Points',
+                    },
+                },
+                {
+                    seriesName: 'VAB Upgrades',
+                    show: false,
+                },
+                {
+                    seriesName: 'VAB Upgrades',
+                    show: false,
+                },
+            ],
         };
 
         const chart = new ApexCharts(document.querySelector("#chart"), options);
 
         chart.render();
-      }
-    </script>
-  </body>
+    }
+</script>
+</body>
 </html>
