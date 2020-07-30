@@ -42,14 +42,20 @@
     function getCareerLogs() {
         console.log("Getting Logs...");
 
-        fetch("https://kspro-rp1-analytics.herokuapp.com/api/careerlogs/8a2616a8d3f710cfb868a5d18877d8df41bc3fc7")
-            .then((res) => res.json())
-            .then((jsonLogs) => drawChart(jsonLogs));
+        const uuidFromForm = document.querySelector("#uuid_input").value;
+        console.log(uuidFromForm);
+
+        if (uuidFromForm !== 'null' && uuidFromForm !== 'undefined' && uuidFromForm.length > 10) {
+            fetch(`https://kspro-rp1-analytics.herokuapp.com/api/careerlogs/${uuidFromForm}`)
+                .then((res) => res.json())
+                .then((jsonLogs) => drawChart(jsonLogs));
+        } else {
+            window.alert("Please provide a valid log ID...");
+        }
     }
 
     function getEpochs(careerLogs) {
         console.log("Fetching epochs from entries");
-        console.log(careerLogs.entries);
 
         let epochs = [];
 
@@ -122,14 +128,19 @@
 
         console.log("Fetching first Artificial Satellite month");
 
-        for (let i = 0; i < careerLogs.entries.size; i++) {
-            if (careerLogs.entries[i]["Contracts"].includes('First Artificial Satellite')) {
-                return {month: careerLogs.entries[i]["Month"], index: i};
+        for (let i = 0; i < careerLogs.entries.length - 1; i++) {
+            let entry = careerLogs.entries[i];
+            for (let contractEvent of entry.contractEvents) {
+                if (contractEvent === 'First Artificial Satellite') {
+                    return {
+                        month: entry.epoch,
+                        index: i
+                    }
+                }
             }
         }
-
         return {
-            month: "Not yet reached first orbit",
+            month: "not yet reached",
             index: 0
         }
     }
