@@ -1,266 +1,188 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>RP-1 Analytics</title>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <!-- Compiled and minified CSS -->
-    <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-    />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Compiled and minified JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+        integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+
+    <title>XP11 - Custom GPS Waypoints Generator</title>
 </head>
+
 <body>
-<nav>
-    <div class="nav-wrapper blue darken-4">
-        <a href="#" class="brand-logo" style="margin: 0 1rem;"
-        >KSPRO - RP1 - Analytics</a
-        >
+
+    <div class="container">
+
+        <form class="card mt-3">
+
+            <div class="card-body">
+
+                <h5 class="card-title">XP11 - Custom GPS Waypoint Generator</h5>
+
+                <div class="card-text">
+                    <div class="row m-3">
+                        <div class="col">
+                            <label for="longitude" class="form-label">Longitude</label>
+                            <input type="number" class="form-control" id="longitudeInput"
+                                placeholder="maximum 2.6 digits">
+                        </div>
+                        <div class="col">
+                            <label for="latitude" class="form-label">Latitude</label>
+                            <input type="number" class="form-control" id="latitudeInput"
+                                placeholder="maximum 2.6 digits">
+                        </div>
+                    </div>
+
+                    <div class="row m-3">
+                        <div class="col">
+                            <label for="identifier" class="form-label">GPS identifier</label>
+                            <input type="text" class="form-control" id="identifierInput"
+                                placeholder="maximum 6 digits recommended">
+                        </div>
+                        <div class="col">
+                            <label for="airport" class="form-label">Airport ICAO</label>
+                            <input type="text" class="form-control" id="airportInput"
+                                placeholder="if blank ZZZZ will be used">
+                        </div>
+                    </div>
+
+                    <div class="row m-3">
+                        <div class="col">
+                            <label for="region" class="form-label">Region code</label>
+                            <input type="text" id="regionInput" class="form-control" placeholder="ICAO region code">
+                        </div>
+                        <div class="col"></div>
+                    </div>
+
+                    <div class="row m-3">
+                        <div class="col"><button onclick="addWaypoint(event);" class="btn btn-primary">Generate
+                                Waypoint</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+
+
+        <div class="card mt-5">
+
+            <div class="card-body">
+
+                <h5 class="card-title row clearfix">
+                    <div class="col">Generated Waypoints</div>
+                    <div class="col">
+                        <button type="button" class="btn btn-success float-right"
+                            onclick="exportWaypoints(event)">Export Waypoints</button>
+                    </div>
+                </h5>
+
+                <div class="card-text">
+
+                    <table class="table table-striped table-bordered mt-3" id="generatedWaypointsTable">
+
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Latitude</th>
+                                <th scope="col">Longitude</th>
+                                <th scope="col">Identifier</th>
+                                <th scope="col">Airport</th>
+                                <th scope="col">Region</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-</nav>
 
-<div style="margin: 1rem 1rem;">
-    <label for="uuid_input">UUID</label>
-    <input
-            name="uuid_input"
-            id="uuid_input"
-            placeholder="Enter UUID as displayed on the web export dialog"
-            type="text"
-    />
-    <button class="waves-effect waves-light btn" onclick="getCareerLogs()">
-        Get Career Log
-    </button>
+    <script src=" https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"
+        integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/"
+        crossorigin="anonymous"></script>
 
-    <div id="chart"></div>
-</div>
+    <script>
 
-<script>
-    function getCareerLogs() {
-        console.log("Getting Logs...");
+        let waypoints = [];
 
-        const uuidFromForm = document.querySelector("#uuid_input").value;
-        console.log(uuidFromForm);
+        window.onload = () => console.log("waypoint generator loaded...");
 
-        if (uuidFromForm !== 'null' && uuidFromForm !== 'undefined' && uuidFromForm.length > 10) {
-            fetch(`https://kspro-rp1-analytics.herokuapp.com/api/careerlogs/${uuidFromForm}`)
-                .then((res) => res.json())
-                .then((jsonLogs) => drawChart(jsonLogs));
-        } else {
-            window.alert("Please provide a valid log ID...");
-        }
-    }
+        function addWaypoint(event) {
+            event.preventDefault();
 
-    function getEpochs(careerLogs) {
-        console.log("Fetching epochs from entries");
-
-        let epochs = [];
-
-        careerLogs.entries.forEach((entry) => {
-            epochs.push(entry.epoch);
-        });
-
-        return epochs;
-    }
-
-    function getScienceEarned(careerLogs) {
-        console.log("Fetching science earned from entries");
-        let scienceEarned = [];
-        careerLogs.entries.forEach((entry) => {
-            scienceEarned.push(entry.scienceEarned);
-        });
-
-        return scienceEarned;
-    }
-
-    function getCurrentFunds(careerLogs) {
-        console.log("Fetching current funds from entries");
-
-        let currentFunds = [];
-
-        careerLogs.entries.forEach((entry) => {
-            currentFunds.push(entry.currentFunds);
-        });
-
-        return currentFunds;
-    }
-
-    function getVabUpgrades(careerLogs) {
-        console.log("Fetching vab upgrades from entries");
-
-        let vabUpgrades = [];
-
-        careerLogs.entries.forEach((entry) => {
-            vabUpgrades.push(entry.vabUpgrades);
-        });
-
-        return vabUpgrades;
-    }
-
-    function getSphUpgrades(careerLogs) {
-        console.log("Fetching vab upgrades from entries");
-
-        let sphUpgrades = [];
-
-        careerLogs.entries.forEach((entry) => {
-            sphUpgrades.push(entry.sphUpgrades);
-        });
-
-        return sphUpgrades;
-    }
-
-    function getRndUpgrades(careerLogs) {
-        console.log("Fetching vab upgrades from entries");
-
-        let rndUpgrades = [];
-
-        careerLogs.entries.forEach((entry) => {
-            rndUpgrades.push(entry.rndUpgrades);
-        });
-
-        return rndUpgrades;
-    }
-
-    function getFirstSatelliteMonth(careerLogs) {
-
-        console.log("Fetching first Artificial Satellite month");
-
-        for (let i = 0; i < careerLogs.entries.length - 1; i++) {
-            let entry = careerLogs.entries[i];
-            for (let contractEvent of entry.contractEvents) {
-                if (contractEvent === 'First Artificial Satellite') {
-                    return {
-                        month: entry.epoch,
-                        index: i
-                    }
-                }
+            console.log("geenerating waypoint from form input...");
+            const waypoint = {
+                longitude: document.querySelector('#longitudeInput').value,
+                latitude: document.querySelector('#latitudeInput').value,
+                gpsIdentifier: document.querySelector('#identifierInput').value,
+                airport: document.querySelector('#airportInput').value,
+                region: document.querySelector('#regionInput').value
             }
+
+
+            waypoints.push(waypoint);
+
+            appendNewWaypointToTable(waypoint);
         }
-        return {
-            month: "not yet reached",
-            index: 0
+
+        function appendNewWaypointToTable(waypoint) {
+
+            let tableRef = document.getElementById('generatedWaypointsTable').getElementsByTagName('tbody')[0];
+            let newRow = tableRef.insertRow(tableRef.rows.length);
+
+            const newTableRow = `<tr>
+                                <th class="font-monospace" scope="row">${tableRef.rows.length}</th>
+                                <td class="font-monospace">${waypoint.latitude}</td>
+                                <td class="font-monospace">${waypoint.longitude}</td>
+                                <td class="font-monospace">${waypoint.gpsIdentifier}</td>
+                                <td class="font-monospace">${waypoint.airport}</td>
+                                <td class="font-monospace">${waypoint.region}</td>
+                            </tr>`;
+
+
+            newRow.innerHTML = newTableRow;
         }
-    }
 
-    function drawChart(careerLogs) {
-        console.log("Drawing Chart");
+        function exportWaypoints(event) {
+            event.preventDefault();
 
-        const options = {
-            chart: {
-                type: "line",
-                height: 700,
-                width: 1800,
-            },
-            markers: {
-                size: 1,
-                colors: undefined,
-                strokeColors: "#fff",
-                strokeWidth: 1,
-                strokeOpacity: 0.2,
-                strokeDashArray: 0,
-                fillOpacity: 1,
-                shape: "circle",
-                radius: 1,
-                offsetX: 0,
-                offsetY: 0,
-                discrete: [
-                    {
-                        seriesIndex: 0,
-                        dataPointIndex: this.getFirstSatelliteMonth(careerLogs).index,
-                        strokeColors: '#red',
-                        strokeWidth: 1,
-                        strokeOpacity: 0.2,
-                        strokeDashArray: 0,
-                        fillOpacity: 1,
-                        size: 5,
-                    },
-                ],
-            },
-            stroke: {
-                show: true,
-                curve: "straight",
-                lineCap: "butt",
-                colors: undefined,
-                width: 3,
-                dashArray: 0,
-            },
-            grid: {
-                row: {
-                    colors: ["#f3f3f3", "transparent"],
-                    opacity: 0.5,
-                },
-            },
-            series: [
-                {
-                    name: "Science Earned",
-                    data: getScienceEarned(careerLogs),
-                },
-                {
-                    name: "VAB Upgrades",
-                    data: getVabUpgrades(careerLogs),
-                },
-                {
-                    name: "SPH Upgrades",
-                    data: getSphUpgrades(careerLogs),
-                },
-                {
-                    name: "RnD Upgrades",
-                    data: getRndUpgrades(careerLogs),
-                },
-                {
-                    name: "Current Funds",
-                    data: getCurrentFunds(careerLogs),
-                },
-            ],
-            xaxis: {
-                categories: getEpochs(careerLogs),
-            },
-            yaxis: [
-                {
-                    title: {
-                        text: 'Funds $',
-                    },
-                    axisTicks: {
-                        show: true,
-                    },
-                    axisBorder: {
-                        show: true,
-                    },
-                },
-                {
-                    seriesName: 'Total Funds',
-                    show: false,
-                },
-                {
-                    opposite: true,
-                    axisTicks: {
-                        show: true,
-                    },
-                    axisBorder: {
-                        show: true,
-                    },
-                    title: {
-                        text: 'Upgrade Points',
-                    },
-                },
-                {
-                    seriesName: 'VAB Upgrades',
-                    show: false,
-                },
-                {
-                    seriesName: 'VAB Upgrades',
-                    show: false,
-                },
-            ],
-        };
+            // user_waypoint.dat strings required for XP11.5+ 
+            const BUILD_DATE = new Date().toISOString().split('T')[0].replace(/\-/g, "")
+            const HEADER = `I\n1101 Version - data cycle 2009, build ${BUILD_DATE}, metadata FixXP1101.\n`
+            const FOOTER = `99`;
 
-        const chart = new ApexCharts(document.querySelector("#chart"), options);
+            let output = "";
 
-        chart.render();
-    }
-</script>
+            for (const waypoint of waypoints) {
+                output += `${waypoint.latitude}    ${waypoint.longitude}    ${waypoint.gpsIdentifier}    ${waypoint.airport}    ${waypoint.region}\n`;
+            }
+
+            const generatedExport = HEADER + output + FOOTER;
+
+            download('user_fix.dat', generatedExport);
+        }
+
+
+        function download(filename, text) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+    </script>
 </body>
+
 </html>
