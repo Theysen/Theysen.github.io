@@ -15,41 +15,62 @@
 
     <div class="container">
 
+
+        <div class="fixed-bottom">
+
+            <div class="text-center">
+                <span class="text-danger">For flight simulation use only!</span> | Site created by <a
+                    href="https://github.com/Theysen" target="_blank">Theysen</a> &#9400; 2020 under the <a
+                    href="https://github.com/Theysen/Theysen.github.io/blob/master/LICENSE">MIT</a> License
+            </div>
+
+        </div>
+
+
         <form class="card mt-3" onsubmit="return false">
 
             <div class=" card-body">
 
                 <h5 class="card-title">XP11 - Custom GPS Waypoint Generator</h5>
-                <h6 class="card-subtitle mb-2 text-muted"><small>Convert coordinates to decimal degrees <a
-                            href="https://www.pgc.umn.edu/apps/convert/" target="_blank">here</a>.</small></h6>
+                <h6 class="card-subtitle mb-2 text-muted"><small>Convert coordinates to required decimal degrees format
+                        <a href="https://www.pgc.umn.edu/apps/convert/" target="_blank">here</a>.</small></h6>
+                <h6 class="card-subtitle mb-2 text-muted"><small>Review further information about the data format and
+                        generated file
+                        <a href="https://developer.x-plane.com/wp-content/uploads/2016/10/XP-FIX1101-Spec.pdf"
+                            target="_blank">here</a>.</small></h6>
 
                 <div class="card-text">
                     <div class="row m-3">
                         <div class="col">
-                            <label for="latitude" class="form-label">Latitude</label>
+                            <label for="latitude" class="form-label"><strong>Latitude</strong></label>
                             <input type="number" step="any" class="form-control" id="latitudeInput" required>
                         </div>
                         <div class="col">
-                            <label for="longitude" class="form-label">Longitude</label>
+                            <label for="longitude" class="form-label"><strong>Longitude</strong></label>
                             <input type="number" step="any" class="form-control" id="longitudeInput" required>
                         </div>
                     </div>
 
                     <div class="row m-3">
                         <div class="col">
-                            <label for="identifier" class="form-label">GPS Identifier</label>
+                            <label for="identifier" class="form-label"><strong>GPS Identifier</strong></label>
                             <input type="text" class="form-control" id="identifierInput" required>
+                            <div class="form-text">Suggested length between 4 and 6 digits.</div>
                         </div>
                         <div class="col">
-                            <label for="airport" class="form-label">Airport ICAO</label>
+                            <label for="airport" class="form-label"><strong>Airport ICAO</strong></label>
                             <input type="text" class="form-control" minlength="4" maxlength="4" id="airportInput">
+                            <div class="form-text">Defaults to ZZZZ if left empty / fix is not coupled to a terminal
+                                area.</div>
                         </div>
                     </div>
 
                     <div class="row m-3">
                         <div class="col">
-                            <label for="region" class="form-label">Region Code</label>
+                            <label for="region" class="form-label"><strong>Region Code</strong></label>
                             <input type="text" id="regionInput" minlength="2" maxlength="2" class="form-control">
+                            <div class="form-text">Defaults to ZZ if left empty / fix is not coupled to a terminal area.
+                            </div>
                         </div>
                         <div class="col"></div>
                     </div>
@@ -71,7 +92,16 @@
             <div class="card-body">
 
                 <h5 class="card-title row clearfix">
-                    <div class="col">Generated Waypoints</div>
+                    <div class="col">Generated Waypoints
+
+                        <h6 class="card-subtitle mt-1 text-muted"><small>Place the exported <span
+                                    class="font-monospace">user_fix.dat</span> file into your
+                                <span class="font-monospace">X-Plane11/Custom Data</span> directory. If the file is
+                                already present, copy and paste only the
+                                waypoints from the new file into the existing user fix file.</small></h6>
+
+
+                    </div>
                     <div class="col">
                         <button class="btn btn-success float-right" onclick="exportWaypoints(event)">Export
                             Waypoints</button>
@@ -84,13 +114,13 @@
 
                         <thead>
                             <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Latitude</th>
-                                <th scope="col">Longitude</th>
-                                <th scope="col">Identifier</th>
-                                <th scope="col">Airport</th>
-                                <th scope="col">Region</th>
-                                <th scope="col">Map</th>
+                                <th class="text-center" scope="col">#</th>
+                                <th class="text-center" scope="col">Latitude</th>
+                                <th class="text-center" scope="col">Longitude</th>
+                                <th class="text-center" scope="col">Identifier</th>
+                                <th class="text-center" scope="col">Airport</th>
+                                <th class="text-center" scope="col">Region</th>
+                                <th class="text-center" scope="col">Map</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -101,7 +131,12 @@
                 </div>
             </div>
         </div>
+
+
+
     </div>
+
+
 
     <script src=" https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
         integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
@@ -121,7 +156,7 @@
             const waypoint = {
                 latitude: document.querySelector('#latitudeInput').value,
                 longitude: document.querySelector('#longitudeInput').value,
-                gpsIdentifier: document.querySelector('#identifierInput').value,
+                gpsIdentifier: document.querySelector('#identifierInput').value.trim().toUpperCase(),
                 airport: document.querySelector('#airportInput').value.trim() !== '' ? document.querySelector('#airportInput').value.trim().toUpperCase() : 'ZZZZ',
                 region: document.querySelector('#regionInput').value.trim() !== '' ? document.querySelector('#regionInput').value.trim().toUpperCase() : 'ZZ'
             }
@@ -139,13 +174,13 @@
             const osmMapUrl = `https://www.openstreetmap.org/#map=15/${waypoint.latitude}/${waypoint.longitude}`;
 
             const newTableRow = `<tr>
-                                <th class="font-monospace" scope="row">${tableRef.rows.length}</th>
-                                <td class="font-monospace">${waypoint.latitude}</td>
-                                <td class="font-monospace">${waypoint.longitude}</td>
-                                <td class="font-monospace">${waypoint.gpsIdentifier}</td>
-                                <td class="font-monospace">${waypoint.airport}</td>
-                                <td class="font-monospace">${waypoint.region}</td>
-                                <td><a target="_blank" href="${osmMapUrl}">show</a></td>
+                                <th class="font-monospace text-center" scope="row">${tableRef.rows.length}</th>
+                                <td class="font-monospace text-center">${waypoint.latitude}</td>
+                                <td class="font-monospace text-center">${waypoint.longitude}</td>
+                                <td class="font-monospace text-center">${waypoint.gpsIdentifier}</td>
+                                <td class="font-monospace text-center">${waypoint.airport}</td>
+                                <td class="font-monospace text-center">${waypoint.region}</td>
+                                <td class="text-center"><a target="_blank" href="${osmMapUrl}">show</a></td>
                             </tr>`;
 
 
