@@ -15,46 +15,49 @@
 
     <div class="container">
 
-        <form class="card mt-3">
+        <form class="card mt-3" onsubmit="return false">
 
-            <div class="card-body">
+            <div class=" card-body">
 
                 <h5 class="card-title">XP11 - Custom GPS Waypoint Generator</h5>
+                <h6 class="card-subtitle mb-2 text-muted"><small>Convert coordinates to decimal degrees <a
+                            href="https://www.pgc.umn.edu/apps/convert/" target="_blank">here</a>.</small></h6>
 
                 <div class="card-text">
                     <div class="row m-3">
                         <div class="col">
-                            <label for="longitude" class="form-label">Longitude</label>
-                            <input type="number" class="form-control" id="longitudeInput">
+                            <label for="latitude" class="form-label">Latitude</label>
+                            <input type="number" step="any" class="form-control" id="latitudeInput" required>
                         </div>
                         <div class="col">
-                            <label for="latitude" class="form-label">Latitude</label>
-                            <input type="number" class="form-control" id="latitudeInput">
+                            <label for="longitude" class="form-label">Longitude</label>
+                            <input type="number" step="any" class="form-control" id="longitudeInput" required>
                         </div>
                     </div>
 
                     <div class="row m-3">
                         <div class="col">
-                            <label for="identifier" class="form-label">GPS identifier</label>
-                            <input type="text" class="form-control" id="identifierInput">
+                            <label for="identifier" class="form-label">GPS Identifier</label>
+                            <input type="text" class="form-control" id="identifierInput" required>
                         </div>
                         <div class="col">
                             <label for="airport" class="form-label">Airport ICAO</label>
-                            <input type="text" class="form-control" id="airportInput">
+                            <input type="text" class="form-control" minlength="4" maxlength="4" id="airportInput">
                         </div>
                     </div>
 
                     <div class="row m-3">
                         <div class="col">
-                            <label for="region" class="form-label">Region code</label>
-                            <input type="text" id="regionInput" class="form-control">
+                            <label for="region" class="form-label">Region Code</label>
+                            <input type="text" id="regionInput" minlength="2" maxlength="2" class="form-control">
                         </div>
                         <div class="col"></div>
                     </div>
 
                     <div class="row m-3">
-                        <div class="col"><button onclick="addWaypoint(event);" class="btn btn-primary">Generate
-                                Waypoint</button>
+                        <div class="col">
+                            <button onclick="addWaypoint(event);" class="btn btn-primary">
+                                Generate Waypoint</button>
                         </div>
                     </div>
                 </div>
@@ -70,8 +73,8 @@
                 <h5 class="card-title row clearfix">
                     <div class="col">Generated Waypoints</div>
                     <div class="col">
-                        <button type="button" class="btn btn-success float-right"
-                            onclick="exportWaypoints(event)">Export Waypoints</button>
+                        <button class="btn btn-success float-right" onclick="exportWaypoints(event)">Export
+                            Waypoints</button>
                     </div>
                 </h5>
 
@@ -87,6 +90,7 @@
                                 <th scope="col">Identifier</th>
                                 <th scope="col">Airport</th>
                                 <th scope="col">Region</th>
+                                <th scope="col">Map</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -107,23 +111,20 @@
         crossorigin="anonymous"></script>
 
     <script>
-
         let waypoints = [];
-
-        window.onload = () => console.log("waypoint generator loaded...");
-
         function addWaypoint(event) {
-            event.preventDefault();
 
-            console.log("geenerating waypoint from form input...");
-            const waypoint = {
-                longitude: document.querySelector('#longitudeInput').value,
-                latitude: document.querySelector('#latitudeInput').value,
-                gpsIdentifier: document.querySelector('#identifierInput').value,
-                airport: document.querySelector('#airportInput').value,
-                region: document.querySelector('#regionInput').value
+            if (!document.querySelector('form').checkValidity()) {
+                return;
             }
 
+            const waypoint = {
+                latitude: document.querySelector('#latitudeInput').value,
+                longitude: document.querySelector('#longitudeInput').value,
+                gpsIdentifier: document.querySelector('#identifierInput').value,
+                airport: document.querySelector('#airportInput').value.trim() !== '' ? document.querySelector('#airportInput').value.trim().toUpperCase() : 'ZZZZ',
+                region: document.querySelector('#regionInput').value.trim() !== '' ? document.querySelector('#regionInput').value.trim().toUpperCase() : 'ZZ'
+            }
 
             waypoints.push(waypoint);
 
@@ -135,6 +136,8 @@
             let tableRef = document.getElementById('generatedWaypointsTable').getElementsByTagName('tbody')[0];
             let newRow = tableRef.insertRow(tableRef.rows.length);
 
+            const osmMapUrl = `https://www.openstreetmap.org/#map=15/${waypoint.latitude}/${waypoint.longitude}`;
+
             const newTableRow = `<tr>
                                 <th class="font-monospace" scope="row">${tableRef.rows.length}</th>
                                 <td class="font-monospace">${waypoint.latitude}</td>
@@ -142,6 +145,7 @@
                                 <td class="font-monospace">${waypoint.gpsIdentifier}</td>
                                 <td class="font-monospace">${waypoint.airport}</td>
                                 <td class="font-monospace">${waypoint.region}</td>
+                                <td><a target="_blank" href="${osmMapUrl}">show</a></td>
                             </tr>`;
 
 
